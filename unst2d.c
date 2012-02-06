@@ -3,7 +3,7 @@
 #include <math.h>
 #include "util2d.h"
 #include "flux.h"
-
+#include "grid_reader.h"
 
 
 //the driver routine for fluxes
@@ -11,16 +11,18 @@ int main(int argc, char *argv[])
 {
      int i;
      const int neqs = 4;
-     if(argc != 5)
+     if(argc != 4)
      {
-	  printf("not enough input arguments! \n syntax:\n $>./vanleer Mach alpha nx ny\n exit ...\n");
+	  printf("\n not enough input arguments! \n syntax:\n $>./unst2d input_mesh_file Mach alpha\n exit ...\n");
 	  exit(0);
      }
      double gamma = 1.4;
-     double M_inf = atof(argv[1]);
-     double alpha = atof(argv[2])*M_PI/180.;
-     double nx = atof(argv[3]);
-     double ny = atof(argv[4]);
+     double M_inf = atof(argv[2]);
+     double alpha = atof(argv[3])*M_PI/180.;
+     double nx = 0.1;
+     double ny = 0.1;
+     double *x, *y;
+     int nn, nt, **tri_conn, nb, *nbs, ***bs;
      printf("\n ---------------- Summary -------------------\n");
      printf("M_inf = %e, alpha= %e (RAD), nx=%e, ny=%e\n",M_inf, alpha, nx, ny);
 
@@ -50,7 +52,9 @@ int main(int argc, char *argv[])
      n_hat[0] = nx;
      n_hat[1] = ny;
 
-
+     //reading the input mesh
+     read_mesh_file(argv[1], &x, &y, &nn, &nt, &tri_conn, &nb, &nbs, &bs);
+     //calculating fluxes
      calc_van_leer(Q, fvl_p, fvl_m, d_fvl_p, d_fvl_m, neqs, gamma, n_hat);
 
      //showing the matrices

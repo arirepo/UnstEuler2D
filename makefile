@@ -1,8 +1,8 @@
-# Makefile to build project 
+# Makefile to build unstructured 2d solver project 
 # --- macros
 CC=gcc
 CFLAGS=  -O3 -Wall
-OBJECTS= unst2d.o flux.o util2d.o
+OBJECTS= unst2d.o flux.o util2d.o grid_reader.o
 LIBS = -lm
 
 # --- targets
@@ -15,6 +15,8 @@ flux.o : flux.c
 	$(CC) $(CFLAGS) -c flux.c
 util2d.o : util2d.c
 	$(CC) $(CFLAGS) -c util2d.c
+grid_reader.o : grid_reader.c
+	$(CC) $(CFLAGS) -c grid_reader.c
 
 # --- remove object and executable files
 clean:
