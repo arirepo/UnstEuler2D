@@ -19,14 +19,15 @@ int main(int argc, char *argv[])
      double gamma = 1.4;
      double M_inf = atof(argv[2]);
      double alpha = atof(argv[3])*M_PI/180.;
-     double nx = 0.1;
-     double ny = 0.1;
+     double nx = -1.;
+     double ny = 2.0;
      double *x, *y;
      int nn, nt, **tri_conn, nb, *nbs, ***bs;
      printf("\n ---------------- Summary -------------------\n");
      printf("M_inf = %e, alpha= %e (RAD), nx=%e, ny=%e\n",M_inf, alpha, nx, ny);
 
      double *n_hat = (double *)calloc(2 , sizeof(double));
+     int *f_select = (int *)calloc(4 , sizeof(int));
 
      //allocating vector of conservative variables and Van Leer flux vector 
      double *Q = (double *)calloc( neqs , sizeof(double));
@@ -55,7 +56,11 @@ int main(int argc, char *argv[])
      //reading the input mesh
      read_mesh_file(argv[1], &x, &y, &nn, &nt, &tri_conn, &nb, &nbs, &bs);
      //calculating fluxes
-     calc_van_leer(Q, fvl_p, fvl_m, d_fvl_p, d_fvl_m, neqs, gamma, n_hat);
+     f_select[0] = 1;     
+     f_select[1] = 1;     
+     f_select[2] = 1;     
+     f_select[3] = 1;
+     calc_van_leer(Q, fvl_p, fvl_m, d_fvl_p, d_fvl_m, neqs, gamma, n_hat, f_select);
 
      //showing the matrices
      print_array("fvl_p",fvl_p, neqs);
