@@ -1,0 +1,17 @@
+#include <stdio.h>
+#include "residuals.h"
+
+//Computes residuals based on median duals
+// -------------------- INPUT -----------------------
+// Q[neqs*n+i] is the vector of conservative variables [Q0, Qi, ..., Qneqs-1] for node 'n' starting from 0.
+// -------------------- OUTPUT -----------------------
+// R[neqs*n+i] is the vector of residuals [R0, Ri, ..., Rneqs-1] for node 'n' starting from 0.
+
+int calc_residuals( double *Q, int nn, double *x, double *y, int nt, int **tri_conn, int *bn_nodes, double *R)
+{
+
+     
+
+     //completed successfully
+     return 0;
+}

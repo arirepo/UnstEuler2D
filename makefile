@@ -2,7 +2,7 @@
 # --- macros
 CC=gcc
 CFLAGS=  -O3 -Wall
-OBJECTS= unst2d.o flux.o util2d.o grid_reader.o
+OBJECTS= unst2d.o flux.o util2d.o grid_reader.o residuals.o
 LIBS = -lm
 
 # --- targets
@@ -17,6 +17,8 @@ util2d.o : util2d.c
 	$(CC) $(CFLAGS) -c util2d.c
 grid_reader.o : grid_reader.c
 	$(CC) $(CFLAGS) -c grid_reader.c
+residuals.o : residuals.c
+	$(CC) $(CFLAGS) -c residuals.c
 
 # --- remove object and executable files
 clean:
