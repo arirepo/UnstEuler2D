@@ -3,6 +3,7 @@
 
 void print_matrix(const char *name, double **inmat, int n1, int n2);
 void print_array(const char *name, double *inmat, int n1);
+double max_abs_array(double *inmat, int n1);
 
 
 #endif
