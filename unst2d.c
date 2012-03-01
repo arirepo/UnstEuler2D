@@ -10,6 +10,7 @@
 //the driver routine for fluxes
 int main(int argc, char *argv[])
 {
+     char buff[500];
      int i,j;
      const int neqs = 4;
      if(argc != 4)
@@ -72,18 +73,41 @@ int main(int argc, char *argv[])
      /* calc_van_leer(Q, fvl_p, fvl_m, d_fvl_p, d_fvl_m, neqs, gamma, n_hat, f_select); */
      int *bn_nodes = NULL;     
      tag_bn_nodes(nn, nb, nbs, bs, &bn_nodes);
-     
+ 
+     // check if normal cansel out
+     double sum_nx=0., sum_ny=0.;
+     test_bn_of_grid( nn, x, y, nt, tri_conn, bn_nodes, &sum_nx, &sum_ny);
+    
+     printf("sum of nx normal is sum_nx = %19.19e and sum_ny = %19.19e" , sum_nx, sum_ny);
      calc_residuals( Q, Q_inf, gamma, nn, neqs, x, y, nt, tri_conn, bn_nodes, R);
 
      //showing the matrices
-     print_array("residuals",R, neqs*nn);
+     //print_array("residuals",R, neqs*nn);
      printf("\n\n the max(abs(res[j])) = %e\n\n", max_abs_array(R, (neqs*nn)));
      /* print_array("fvl_m",fvl_m, neqs); */
 
      /* print_matrix("dfplus", d_fvl_p, neqs, neqs); */
      /* print_matrix("dfmin", d_fvl_m, neqs, neqs); */
 
-
+//Testing Ariplot
+     //1- fill the Q for sample
+     for ( i = 0; i < nn; i++)
+	  for (j = 0; j < neqs; j++)
+	       Q[i*neqs + j] = R[i*neqs + j];
+     
+     PLT_SPEC samp_plt;
+     sprintf(samp_plt.title, "test_contours!");
+     sprintf(samp_plt.xlabel, "x");
+     sprintf(samp_plt.ylabel, "y");
+     samp_plt.xmin = -max_abs_array(x, nn);
+     samp_plt.xmax = max_abs_array(x, nn);
+     samp_plt.ymin = -max_abs_array(y, nn);
+     samp_plt.ymax = max_abs_array(y, nn);
+     sprintf(samp_plt.OUTPUT,"display");
+     sprintf(samp_plt.pltype, "ColorTri");
+     
+     write_unst_grd_sol(argv[1], x, y, Q, neqs, nn, nt, tri_conn, &samp_plt);
+     
      //completed successfully!
      return 0;
 }

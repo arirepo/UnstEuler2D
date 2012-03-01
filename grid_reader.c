@@ -123,80 +123,43 @@ int read_mesh_file(char *fname, double **x, double **y, int *nn, int *nt, int **
      return 0;
 }
 
-int write_mesh_gnu_files(char *fname, double *x, double *y, int nn, int nt, int tri[][3], int nb, int *nbs, int ***bs)
+int write_unst_grd_sol(char *fname, double *x, double *y, double *Q, int neqs, int nn, int nt, int **tri, PLT_SPEC *gnplt)
 {
 
-  FILE *fp;
-  int bdim = 80;
-  char buff[bdim];
-  int i, j;
+     FILE *sol; //generic file handlerer
+     int bdim = 500;
+     char dataf[bdim];
+     char gridf[bdim];
+     char runstr[1500];
+     
+     int i, j;
+     //making grid and data files from mesh file stem
+     sprintf(gridf, "%s.grd.dat" , fname);
+     sprintf(dataf, "%s.sol.dat" , fname);
+  
+     //writing solution
+     sol = fopen(dataf,"w");     
+     for ( i = 0; i < nn; i++)
+     {
+	  fprintf(sol, "%19.19lf %19.19lf ", x[i], y[i]);	  
+	  for( j = 0; j < neqs; j++)
+	       fprintf(sol, "%19.19lf ", Q[i*neqs + j]);
+	  fprintf(sol, "\n");	  	  
+     }
+     fclose(sol);
 
-  printf("\nFilename = <%s>",fname);
-  // Open file for write
-  if ((fp = fopen(fname,"w")) == 0)
-  {
-    printf("\nError opening file <%s>.",fname);
-    exit(0);
-  }
+     //writing grid
+     sol = fopen(gridf,"w");
+     for ( i = 0; i < nt; i++)
+	  fprintf(sol, "%d %d %d\n", tri[i][0], tri[i][1], tri[i][2]);
+     fclose(sol);
 
-  // Write out nodes
-  fprintf(fp,"#Number of grid points\n");
-  fprintf(fp,"%d\n",nn);
-  for (i=0; i < nn; i++)
-    fprintf(fp,"%19.10e %19.10e\n",x[i],y[i]);
+     //creating shell run string which will be used as a input argument for python plotter program
+     sprintf(runstr, "python ariplot.py %s %s %s %f %f %f %f %s %s %s %s" , gridf, dataf, gnplt->pltype, gnplt->xmin, gnplt->xmax, gnplt->ymin, gnplt->ymax, gnplt->title, gnplt->xlabel, gnplt->ylabel, gnplt->OUTPUT);
 
-  fprintf(fp,"#Number of blocks\n");
-  fprintf(fp,"1\n");
-
-  fprintf(fp,"#Number of triangular elements\n");
-  fprintf(fp,"%d\n",nt);
-  for (i=0; i < nt; i++)
-    fprintf(fp,"%d %d %d\n",tri[i][0]+1,tri[i][1]+1,tri[i][2]+1);
-
-  fprintf(fp,"#Number of quadrilateral elements\n");
-  fprintf(fp,"%d\n",0);
-
-  fprintf(fp,"#Number of boundaries\n");
-  fprintf(fp,"%d\n",nb);
-
-  for (i=0; i < nb; i++)
-  {
-    fprintf(fp,"#Number of edges for boundary %d\n",i+1);
-    fprintf(fp,"%d\n",nbs[i]);
-
-    for (j=0; j < nbs[i]; j++)
-      fprintf(fp,"%d %d\n",bs[i][j][0]+1,bs[i][j][1]+1);
-  }
-
-  fclose(fp);
-
-  //
-  //
-  // write GNUPLOT file
-  //
-  buff[0]='\0';
-  strcpy(buff,fname);
-  strcat(buff,".dat");
-  printf("\nFilename = <%s>\n",buff);
-  // Open file for write
-  if ((fp = fopen(buff,"w")) == 0)
-  {
-    printf("\nError opening file <%s>.",buff);
-    exit(0);
-  }
-  for (i=0; i < nt; i++)
-  {
-    int n0 = tri[i][0];
-    int n1 = tri[i][1];
-    int n2 = tri[i][2];
-    fprintf(fp,"%19.10e %19.10e 0.0\n",  x[n0],y[n0]);
-    fprintf(fp,"%19.10e %19.10e 0.0\n",  x[n1],y[n1]);
-    fprintf(fp,"%19.10e %19.10e 0.0\n",  x[n2],y[n2]);
-    fprintf(fp,"%19.10e %19.10e 0.0\n\n",x[n0],y[n0]);
-  }
-  fclose(fp);
-
-  //completed successfully
-  return 0;
+     printf("\nrunstr = %s\n", runstr);
+     //running the script file in shell
+     return system(runstr);
 
 }
+

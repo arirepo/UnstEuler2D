@@ -79,6 +79,10 @@ int calc_residuals( double *Q, double *Q_inf, double gamma, int nn, int neqs, do
 	       n_left = i;	       
 	       n_right = (i<2)?(i+1):0;
 
+	       //converting local to global node number 
+	       n_left = tri_conn[t][n_left];
+	       n_right = tri_conn[t][n_right];
+
 	       if(bn_nodes[n_left] && bn_nodes[n_right]) //both nodes are on the boundaries then this is simply a boundary edge!
 	       {
 		    nx = 0.5*(y[n_right] - y[n_left]);
@@ -147,4 +151,47 @@ int calc_residuals( double *Q, double *Q_inf, double gamma, int nn, int neqs, do
      
      //completed successfully
      return 0;
+}
+
+//tests if boundary normals all cancel out or not
+int test_bn_of_grid( int nn, double *x, double *y, int nt, int **tri_conn, int *bn_nodes, double *sum_nx, double *sum_ny)
+{
+
+  //local vars
+  int i, j, t;
+  int n_right, n_left;
+  double xc, yc, xmid, ymid;
+  double nx, ny;
+
+  //resetting 
+  *sum_nx = 0.;
+  *sum_ny = 0.;
+
+  //main loop : loop over all triangles
+  for (t = 0; t < nt; t++)
+    for(i = 0; i < 3; i++) //loop over vertices of each triangle
+      {
+	//determine left and right
+	n_left = i;	       
+	n_right = (i<2)?(i+1):0;
+
+        n_left = tri_conn[t][n_left];
+        n_right = tri_conn[t][n_right];
+
+	if(bn_nodes[n_left] && bn_nodes[n_right]) //both nodes are on the boundaries then this is simply a boundary edge!
+	  {
+	    nx = y[n_right] - y[n_left];
+	    ny = -(x[n_right]-x[n_left]);
+	    printf("added %lf", nx);
+	    printf("added %lf", ny);
+
+	    (*sum_nx) += nx;
+	    (*sum_ny) += ny;
+	  }
+      }
+
+ 
+
+  //completed successfully!
+  return 0;
 }
