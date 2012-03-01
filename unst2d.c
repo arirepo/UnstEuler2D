@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <math.h>
 #include "util2d.h"
-//#include "flux.h"
 #include "grid_reader.h"
 #include "residuals.h"
 
@@ -10,7 +9,6 @@
 //the driver routine for fluxes
 int main(int argc, char *argv[])
 {
-     char buff[500];
      int i,j;
      const int neqs = 4;
      if(argc != 4)
@@ -28,7 +26,6 @@ int main(int argc, char *argv[])
      /* printf("\n ---------------- Summary -------------------\n"); */
      /* printf("M_inf = %e, alpha= %e (RAD), nx=%e, ny=%e\n",M_inf, alpha, nx, ny); */
 
-     double *n_hat = (double *)calloc(2 , sizeof(double));
      /* int *f_select = (int *)calloc(4 , sizeof(int)); */
 
      //allocating vector of conservative variables and Van Leer flux vector 

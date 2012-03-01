@@ -132,7 +132,7 @@ int calc_residuals( double *Q, double *Q_inf, double gamma, int nn, int neqs, do
 	       for(j=0; j < neqs; j++)
 	       {
 		    R[neqs*n_left+j] += (fvl_p[j] + fvl_m[j]);
-		    R[neqs*n_right+j] += (-(fvl_p[j] + fvl_m[j]));
+		    R[neqs*n_right+j] -= (fvl_p[j] + fvl_m[j]);
 	       }
 	       
 
@@ -158,9 +158,8 @@ int test_bn_of_grid( int nn, double *x, double *y, int nt, int **tri_conn, int *
 {
 
   //local vars
-  int i, j, t;
+  int i, t;
   int n_right, n_left;
-  double xc, yc, xmid, ymid;
   double nx, ny;
 
   //resetting 
@@ -182,8 +181,8 @@ int test_bn_of_grid( int nn, double *x, double *y, int nt, int **tri_conn, int *
 	  {
 	    nx = y[n_right] - y[n_left];
 	    ny = -(x[n_right]-x[n_left]);
-	    printf("added %lf", nx);
-	    printf("added %lf", ny);
+	    //printf("added %lf", nx);
+	    //printf("added %lf", ny);
 
 	    (*sum_nx) += nx;
 	    (*sum_ny) += ny;
