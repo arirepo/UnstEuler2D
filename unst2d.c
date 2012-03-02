@@ -75,7 +75,21 @@ int main(int argc, char *argv[])
      double sum_nx=0., sum_ny=0.;
      test_bn_of_grid( nn, x, y, nt, tri_conn, bn_nodes, &sum_nx, &sum_ny);
     
-     printf("sum of nx normal is sum_nx = %19.19e and sum_ny = %19.19e" , sum_nx, sum_ny);
+     printf("\nsum of nx normal is sum_nx = %19.19e and sum_ny = %19.19e\n" , sum_nx, sum_ny);
+
+     //calculating areas
+     double *area = (double *)malloc( nn * sizeof(double));
+     double sum_indv_areas = 0.;
+     double total_area = 0.;
+     // calculating area per node-centered element
+     cal_areas(nn, x, y, nt, tri_conn, area);
+     for ( i = 0 ; i < nn; i++)
+       sum_indv_areas += area[i];
+
+     cal_total_area(nn, x, y, nt, tri_conn, &total_area);
+     printf("\ntotal area is = %17.17e and sum of area array is %17.17e\n" , total_area, sum_indv_areas);
+
+     //finding the residuals
      calc_residuals( Q, Q_inf, gamma, nn, neqs, x, y, nt, tri_conn, bn_nodes, R);
 
      //showing the matrices

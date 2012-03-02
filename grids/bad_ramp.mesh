@@ -1,0 +1,49 @@
+#Number of grid points
+11
+  -5.0000000000e-01   -5.0000000000e-01
+  -2.0000000000e-01   -5.0000000000e-01
+   0.0000000000e+00    0.0000000000e+00
+   2.0000000000e-01   -5.0000000000e-01
+   5.0000000000e-01   -5.0000000000e-01
+   5.0000000000e-01    5.0000000000e-01
+  -5.0000000000e-01    5.0000000000e-01
+  -1.0000000000e-01   -1.0000000000e-01
+  -2.0000000000e-01   -3.0000000000e-01
+   1.0000000000e-01   -1.0000000000e-01
+   2.0000000000e-01   -3.0000000000e-01
+#Number of blocks
+1
+#Number of triangular elements
+13
+3 4 11
+9 8 7
+8 3 7
+1 9 7
+1 2 9
+8 2 3
+3 10 6
+9 2 8
+4 5 11
+11 5 6
+10 11 6
+10 3 11
+3 6 7
+#Number of quadrilateral elements
+0
+#Number of boundaries
+4
+#Number of edges for boundary 1
+4
+1 2
+2 3
+3 4
+4 5
+#Number of edges for boundary 2
+1
+5 6
+#Number of edges for boundary 3
+1
+6 7
+#Number of edges for boundary 4
+1
+7 1
