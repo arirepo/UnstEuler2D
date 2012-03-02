@@ -42,7 +42,29 @@ int main(int argc, char *argv[])
      //tag the boundary nodes     
      int *bn_nodes = NULL;     
      tag_bn_nodes(nn, nb, nbs, bs, &bn_nodes);
- 
+     // plot boundary node numbers
+     double *bn_nodes_plot = (double *)malloc(nn *neqs * sizeof(double));
+     for( i = 0; i < nn; i++)
+       for (j = 0 ; j < neqs; j++)
+       bn_nodes_plot[i*neqs+j] = (double)bn_nodes[i];
+     {
+       PLT_SPEC samp_plt;
+       sprintf(samp_plt.title, "boundary_number_plus_one");
+       sprintf(samp_plt.xlabel, "x");
+       sprintf(samp_plt.ylabel, "y");
+       samp_plt.xmin = -max_abs_array(x, nn);
+       samp_plt.xmax = max_abs_array(x, nn);
+       samp_plt.ymin = -max_abs_array(y, nn);
+       samp_plt.ymax = max_abs_array(y, nn);
+       sprintf(samp_plt.OUTPUT,"display");
+       sprintf(samp_plt.pltype, "Contour");
+     
+       write_unst_grd_sol(argv[1], x, y, bn_nodes_plot, neqs, nn, nt, tri_conn, &samp_plt);
+       //print_array("bn_nodes_plot", bn_nodes_plot, nn*neqs);
+       printf("boundary number visualization finished! exit ...\n");
+       exit(0);
+     }
+
      // check if normal cansel out
      double sum_nx=0., sum_ny=0.;
      test_bn_of_grid( nn, x, y, nt, tri_conn, bn_nodes, &sum_nx, &sum_ny);

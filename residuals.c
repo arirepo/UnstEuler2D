@@ -4,8 +4,8 @@
 #include "flux.h"
 #include <math.h>
 
-//tags the boundary nodes with 1 and interior node with 0.
-//so for bn_nodes[i=0..(nn-1)] = 0 --> interior. bn_nodes[i=0..(nn-1)] = 1 --> boundary.     
+//tags the boundary nodes with (boundary_number + 1) and interior node with 0.
+//so for bn_nodes[i=0..(nn-1)] = 0 --> interior. bn_nodes[i=0..(nn-1)] =(bn_number+1)>0 --> boundary.     
 int tag_bn_nodes(int nn, int nb, int *nbs, int ***bs, int **bn_nodes)
 {
      //local vars
@@ -15,8 +15,8 @@ int tag_bn_nodes(int nn, int nb, int *nbs, int ***bs, int **bn_nodes)
      for (b=0; b < nb; b++)
 	  for (i=0; i < nbs[b]; i++)
 	  {
-	       (*bn_nodes)[bs[b][i][0]] = 1; //tag the first point of boundary
-	       (*bn_nodes)[bs[b][i][1]] = 1; //tag the second point of boundary
+	       (*bn_nodes)[bs[b][i][0]] = b+1; //tag the first point of boundary
+	       (*bn_nodes)[bs[b][i][1]] = b+1; //tag the second point of boundary
 		     
 	  }
      //completed successfully

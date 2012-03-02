@@ -97,6 +97,11 @@ def main():
     x = np.asarray(x)
     y = np.asarray(y)
     z = np.asarray(z)
+#debug
+    #print 'this is airplot ...'
+    #print z
+    #print 'this is end of airplot.'
+
 
 #extracting triangle connectivity from grid file ...
     infid = open(gridf,'r')
