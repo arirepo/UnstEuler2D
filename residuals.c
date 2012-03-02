@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "residuals.h"
 #include "flux.h"
+#include <math.h>
 
 //tags the boundary nodes with 1 and interior node with 0.
 //so for bn_nodes[i=0..(nn-1)] = 0 --> interior. bn_nodes[i=0..(nn-1)] = 1 --> boundary.     
@@ -193,4 +194,115 @@ int test_bn_of_grid( int nn, double *x, double *y, int nt, int **tri_conn, int *
 
   //completed successfully!
   return 0;
+}
+
+//Computes int_uplusc_dl required for time step computations in explicit time marching
+// -------------------- INPUT -----------------------
+// Q[neqs*n+i] is the vector of conservative variables [Q0, Qi, ..., Qneqs-1] for node 'n' starting from 0.
+// nn is the number of nodes in the grid
+// x[] and y[] are the coordinates of each node
+// nt is the number of triangles in the grid
+// tri_conn[tri = i][0...2] shows the nodes that are connected in triangle tri = i according to the predefined counterclockwise winding.
+// bn_nodes[node = i] is 1 if the node i (zero based) is a boundary node and zero if it is the interior node. This map should be computed before.
+// -------------------- OUTPUT -----------------------
+// int_uplusc_dl[i=0...nn-1] is the array of the evaluated integrals for all nodes
+
+int calc_int_uplusc_dl( double *Q, double gamma, int neqs, int nn, double *x, double *y, int nt, int **tri_conn, int *bn_nodes, double *int_uplusc_dl)
+{
+
+     //local vars
+     int i, t;
+     int n_right, n_left;
+     double xc, yc, xmid, ymid;
+     double nx, ny;
+     double length = 0.;
+     double rho, u, v, u_bar, e, P, c;
+ 
+     //resseting the array
+     for( i = 0; i < nn; i++)	  
+       int_uplusc_dl[i] = 0.;
+     
+     //main loop : loop over all triangles
+     for (t = 0; t < nt; t++)
+     {
+	  //calculate the center of triangle - mean average- 
+	  xc = (x[tri_conn[t][0]] + x[tri_conn[t][1]] + x[tri_conn[t][2]]) / 3.;
+	  yc = (y[tri_conn[t][0]] + y[tri_conn[t][1]] + y[tri_conn[t][2]]) / 3.;
+	  
+	  for(i = 0; i < 3; i++) //loop over vertices of each triangle
+	  {
+	       //determine left and right
+	       n_left = i;	       
+	       n_right = (i<2)?(i+1):0;
+
+	       //converting local to global node number 
+	       n_left = tri_conn[t][n_left];
+	       n_right = tri_conn[t][n_right];
+
+	       if(bn_nodes[n_left] && bn_nodes[n_right]) //both nodes are on the boundaries then this is simply a boundary edge!
+	       {
+		    nx = 0.5*(y[n_right] - y[n_left]);
+		    ny = -0.5*(x[n_right]-x[n_left]);
+
+		    length = sqrt(nx*nx + ny*ny);
+		    //calculating primitive variables
+
+		    //contributing to the left node 
+		    rho = Q[neqs*n_left + 0];
+		    u = Q[neqs*n_left + 1] / Q[neqs*n_left + 0];
+		    v = Q[neqs*n_left + 2] / Q[neqs*n_left + 0];
+		    e = Q[neqs*n_left + 3];
+		    u_bar = (u * nx + v * ny)/length;
+		    P = (gamma - 1.) * e - .5 * (gamma - 1.) *rho * ( u*u + v*v);
+		    c = sqrt(gamma * P/ rho);
+		    int_uplusc_dl[n_left] += ((fabs(u_bar) + c) * length);
+
+		    //contributing to the right node 
+		    rho = Q[neqs*n_right + 0];
+		    u = Q[neqs*n_right + 1] / Q[neqs*n_right + 0];
+		    v = Q[neqs*n_right + 2] / Q[neqs*n_right + 0];
+		    e = Q[neqs*n_right + 3];
+		    u_bar = (u * nx + v * ny)/length;
+		    P = (gamma - 1.) * e - .5 * (gamma - 1.) *rho * ( u*u + v*v);
+		    c = sqrt(gamma * P/ rho);
+		    int_uplusc_dl[n_right] += ((fabs(u_bar) + c) * length);
+		    
+	       }
+	       //calculating the center of that edge
+	       xmid = (x[n_right] + x[n_left]) / 2.;
+	       ymid = (y[n_right] + y[n_left]) / 2.;
+	       //calculating normals		 
+	       nx = yc - ymid;
+	       ny = -(xc-xmid);
+
+	       length = sqrt(nx*nx + ny*ny);
+	       //calculating primitive variables
+	       
+	       //contributing to the left node 
+	       rho = Q[neqs*n_left + 0];
+	       u = Q[neqs*n_left + 1] / Q[neqs*n_left + 0];
+	       v = Q[neqs*n_left + 2] / Q[neqs*n_left + 0];
+	       e = Q[neqs*n_left + 3];
+	       u_bar = (u * nx + v * ny)/length;
+	       P = (gamma - 1.) * e - .5 * (gamma - 1.) *rho * ( u*u + v*v);
+	       c = sqrt(gamma * P/ rho);
+	       int_uplusc_dl[n_left] += ((fabs(u_bar) + c) * length);
+
+	       //contributing to the right node 
+	       rho = Q[neqs*n_right + 0];
+	       u = Q[neqs*n_right + 1] / Q[neqs*n_right + 0];
+	       v = Q[neqs*n_right + 2] / Q[neqs*n_right + 0];
+	       e = Q[neqs*n_right + 3];
+	       u_bar = (u * nx + v * ny)/length;
+	       P = (gamma - 1.) * e - .5 * (gamma - 1.) *rho * ( u*u + v*v);
+	       c = sqrt(gamma * P/ rho);
+	       int_uplusc_dl[n_right] += ((fabs(u_bar) + c) * length);
+	       
+
+	  }
+	  
+     }
+
+     //completed successfully
+     return 0;
 }

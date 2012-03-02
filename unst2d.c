@@ -19,38 +19,15 @@ int main(int argc, char *argv[])
      double gamma = 1.4;
      double M_inf = atof(argv[2]);
      double alpha = atof(argv[3])*M_PI/180.;
-     /* double nx = -1.; */
-     /* double ny = 2.0; */
      double *x, *y;
      int nn, nt, **tri_conn, nb, *nbs, ***bs;
-     /* printf("\n ---------------- Summary -------------------\n"); */
-     /* printf("M_inf = %e, alpha= %e (RAD), nx=%e, ny=%e\n",M_inf, alpha, nx, ny); */
-
-     /* int *f_select = (int *)calloc(4 , sizeof(int)); */
-
-     //allocating vector of conservative variables and Van Leer flux vector 
      double *Q_inf = (double *)calloc( neqs , sizeof(double));
-     /* double *fvl_p = (double *)calloc( neqs , sizeof(double)); */
-     /* double *fvl_m = (double *)calloc( neqs , sizeof(double)); */
-
-     /* //allocating Van Leer flux vector jacobians d_+-  */
-     /* double **d_fvl_p = (double **)calloc( neqs , sizeof(double *)); */
-     /* double **d_fvl_m = (double **)calloc( neqs , sizeof(double *)); */
-
-     /* for( i = 0; i < neqs; i++) */
-     /* { */
-     /* 	  d_fvl_p[i] = (double *)calloc( neqs , sizeof(double)); */
-     /* 	  d_fvl_m[i] = (double *)calloc( neqs , sizeof(double)); */
-     /* } */
 
      //initializing Q
      Q_inf[0] = 1.;
      Q_inf[1] = M_inf * cos(alpha);
      Q_inf[2] = M_inf * sin(alpha);
      Q_inf[3] = 1./(gamma * (gamma-1.)) + .5 * M_inf*M_inf;
-     //initializing n_hat
-     /* n_hat[0] = nx; */
-     /* n_hat[1] = ny; */
 
      //reading the input mesh
      read_mesh_file(argv[1], &x, &y, &nn, &nt, &tri_conn, &nb, &nbs, &bs);
@@ -60,14 +37,9 @@ int main(int argc, char *argv[])
 
      for (i = 0; i < nn; i++)
 	  for (j = 0; j < neqs; j++)
-	       Q[i*neqs + j] = Q_inf[j];
-     
-     /* //calculating fluxes */
-     /* f_select[0] = 1;      */
-     /* f_select[1] = 1;      */
-     /* f_select[2] = 1;      */
-     /* f_select[3] = 1; */
-     /* calc_van_leer(Q, fvl_p, fvl_m, d_fvl_p, d_fvl_m, neqs, gamma, n_hat, f_select); */
+	    Q[i*neqs + j] = (Q_inf[j]+.01);
+
+     //tag the boundary nodes     
      int *bn_nodes = NULL;     
      tag_bn_nodes(nn, nb, nbs, bs, &bn_nodes);
  
@@ -89,22 +61,36 @@ int main(int argc, char *argv[])
      cal_total_area(nn, x, y, nt, tri_conn, &total_area);
      printf("\ntotal area is = %17.17e and sum of area array is %17.17e\n" , total_area, sum_indv_areas);
 
-     //finding the residuals
-     calc_residuals( Q, Q_inf, gamma, nn, neqs, x, y, nt, tri_conn, bn_nodes, R);
+     int ITR = 0;
+     double *int_uplusc_dl = (double *)malloc(nn * sizeof(double) );
+     double CFL = .2;
 
-     //showing the matrices
-     //print_array("residuals",R, neqs*nn);
+     // main iteration loop
+     for( ITR = 1; ITR < 10000; ITR++)
+       {
+
+	 //finding the residuals
+	 calc_residuals( Q, Q_inf, gamma, nn, neqs, x, y, nt, tri_conn, bn_nodes, R);
+
+	 // calculating line integral int( (|u_bar| + c) dl ) 
+	 calc_int_uplusc_dl( Q, gamma, neqs, nn, x, y, nt, tri_conn, bn_nodes, int_uplusc_dl);
+
+	 printf("ITR = %d, norm(R) = %17.17e\n", ITR, max_abs_array(R, (neqs*nn)));
+	 //updating Q
+	 for( i = 0; i < nn; i++)
+	   for( j = 0; j < neqs; j++)
+	     {
+	       //printf("DQ = %e\n", CFL*area[i]/int_uplusc_dl[i]);
+	       Q[i*neqs + j] = Q[i*neqs + j] - CFL*area[i]/int_uplusc_dl[i] * R[i*neqs + j];
+	     }
+
+
+       }
+     //print_array("int_uplusc_dl", int_uplusc_dl, nn);
+
      printf("\n\n the max(abs(res[j])) = %e\n\n", max_abs_array(R, (neqs*nn)));
-     /* print_array("fvl_m",fvl_m, neqs); */
 
-     /* print_matrix("dfplus", d_fvl_p, neqs, neqs); */
-     /* print_matrix("dfmin", d_fvl_m, neqs, neqs); */
-
-//Testing Ariplot
-     //1- fill the Q for sample
-     for ( i = 0; i < nn; i++)
-	  for (j = 0; j < neqs; j++)
-	       Q[i*neqs + j] = R[i*neqs + j];
+     //Testing Ariplot
      
      PLT_SPEC samp_plt;
      sprintf(samp_plt.title, "test_contours!");

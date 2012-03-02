@@ -128,3 +128,15 @@ int cal_total_area(int nn, double *x, double *y, int nt, int **tri_conn, double 
   return 0;
 
 }
+
+double max_abs_R(double *R, int k, int neqs, int nn)
+{
+     int i;
+     double max = fabs(R[neqs*0+k]);
+     for( i = 1; i < nn; i++)
+       if(fabs(R[neqs*i+k]) > max)
+	       max = fabs(R[neqs*i+k]);
+
+     return max;
+     //done!
+}

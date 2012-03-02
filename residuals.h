@@ -7,4 +7,6 @@ int calc_residuals( double *Q, double *Q_inf, double gamma, int nn, int neqs, do
 
 int test_bn_of_grid( int nn, double *x, double *y, int nt, int **tri_conn, int *bn_nodes, double *sum_nx, double *sum_ny);
 
+int calc_int_uplusc_dl( double *Q, double gamma, int neqs, int nn, double *x, double *y, int nt, int **tri_conn, int *bn_nodes, double *int_uplusc_dl);
+
 #endif
