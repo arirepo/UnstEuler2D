@@ -162,7 +162,7 @@ int write_unst_grd_sol(char *fname, double *x, double *y, double *Q, int neqs, i
      system(runstr);
      //cleaning the generated files
      sprintf(runstr, "rm %s", dataf);
-     system(runstr);
+     //system(runstr);
      sprintf(runstr, "rm %s", gridf);
      system(runstr);
 

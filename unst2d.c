@@ -63,10 +63,10 @@ int main(int argc, char *argv[])
 
      int ITR = 0;
      double *int_uplusc_dl = (double *)malloc(nn * sizeof(double) );
-     double CFL = .2;
+     double CFL = 25.2;
 
      // main iteration loop
-     for( ITR = 1; ITR < 10000; ITR++)
+     for( ITR = 1; ITR < 1000; ITR++)
        {
 
 	 //finding the residuals
@@ -86,9 +86,9 @@ int main(int argc, char *argv[])
 
 
        }
-     //print_array("int_uplusc_dl", int_uplusc_dl, nn);
 
      printf("\n\n the max(abs(res[j])) = %e\n\n", max_abs_array(R, (neqs*nn)));
+     print_array("Q_inf", Q_inf, 4);
 
      //Testing Ariplot
      
