@@ -4,7 +4,7 @@
 #include "util2d.h"
 #include "grid_reader.h"
 #include "residuals.h"
-
+#include "marching.h"
 
 //the driver routine for fluxes
 int main(int argc, char *argv[])
@@ -83,34 +83,11 @@ int main(int argc, char *argv[])
      cal_total_area(nn, x, y, nt, tri_conn, &total_area);
      printf("\ntotal area is = %17.17e and sum of area array is %17.17e\n" , total_area, sum_indv_areas);
 
-     int ITR = 0;
-     double *int_uplusc_dl = (double *)malloc(nn * sizeof(double) );
+     //starting to march with matrix independent implementation of euler explicit scheme
      double CFL = .9;
-
-     // main iteration loop
-     for( ITR = 1; ITR < 15000; ITR++)
-       {
-
-	 //finding the residuals
-	 calc_residuals( Q, Q_inf, gamma, nn, neqs, x, y, nt, tri_conn, bn_nodes, R);
-
-	 // calculating line integral int( (|u_bar| + c) dl ) 
-	 calc_int_uplusc_dl( Q, gamma, neqs, nn, x, y, nt, tri_conn, bn_nodes, int_uplusc_dl);
-
-	 printf("ITR = %d, norm(R) = %17.17e\n", ITR, max_abs_array(R, (neqs*nn)));
-	 //updating Q
-	 for( i = 0; i < nn; i++)
-	   for( j = 0; j < neqs; j++)
-	     {
-	       //printf("DQ = %e\n", CFL*area[i]/int_uplusc_dl[i]);
-	       Q[i*neqs + j] = Q[i*neqs + j] - CFL/int_uplusc_dl[i] * R[i*neqs + j];
-	     }
-
-
-       }
-
-     printf("\n\n the max(abs(res[j])) = %e\n\n", max_abs_array(R, (neqs*nn)));
-     print_array("Q_inf", Q_inf, 4);
+     int ITR_MAX = 15000;
+     int itr_per_msg = 20;
+     efficient_euler_explicit(Q, Q_inf, gamma, CFL, ITR_MAX, itr_per_msg, nn, neqs, x, y, nt, tri_conn, bn_nodes);
 
      //Testing Ariplot
      
@@ -126,6 +103,19 @@ int main(int argc, char *argv[])
      sprintf(samp_plt.pltype, "Contour");
      
      write_unst_grd_sol(argv[1], x, y, Q, neqs, nn, nt, tri_conn, &samp_plt);
+
+     //clean - ups 
+     free(x);
+     free(y);
+     free(tri_conn);
+     free(nbs);
+     free(bs);
+
+     free(Q_inf);
+     free(Q);
+     free(R);
+     free(bn_nodes);
+     free(area);
      
      //completed successfully!
      return 0;
