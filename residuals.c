@@ -45,6 +45,8 @@ int calc_residuals( double *Q, double *Q_inf, double gamma, int nn, int neqs, do
      int n_right, n_left;
      double xc, yc, xmid, ymid;
      double nx, ny;
+     double length = 0.;
+     double rho, u, v, e, P_left, P_right;
 
      double *n_hat = (double *)calloc(2 , sizeof(double));
      int *f_select = (int *)calloc(4 , sizeof(int));
@@ -84,7 +86,7 @@ int calc_residuals( double *Q, double *Q_inf, double gamma, int nn, int neqs, do
 	       n_left = tri_conn[t][n_left];
 	       n_right = tri_conn[t][n_right];
 
-	       if(bn_nodes[n_left] && bn_nodes[n_right]) //both nodes are on the boundaries then this is simply a boundary edge!
+	       if((bn_nodes[n_left] == 1) && (bn_nodes[n_right] == 1)) //both nodes are on the free stream boundaries.
 	       {
 		    nx = 0.5*(y[n_right] - y[n_left]);
 		    ny = -0.5*(x[n_right]-x[n_left]);
@@ -117,6 +119,54 @@ int calc_residuals( double *Q, double *Q_inf, double gamma, int nn, int neqs, do
 		    
 		    
 	       }
+	       if((bn_nodes[n_left] > 1) && (bn_nodes[n_right] > 1)) //both nodes are on the wall boundaries.
+	       {
+		    nx = 0.5*(y[n_right] - y[n_left]);
+		    ny = -0.5*(x[n_right]-x[n_left]);
+		    length = sqrt(nx*nx + ny*ny);
+		    //calculating primitive variables
+
+		    //contributing to the left node 
+		    rho = Q[neqs*n_left + 0];
+		    u = Q[neqs*n_left + 1] / Q[neqs*n_left + 0];
+		    v = Q[neqs*n_left + 2] / Q[neqs*n_left + 0];
+		    e = Q[neqs*n_left + 3];
+		    //u_bar = (u * nx + v * ny)/length;
+		    P_left = (gamma - 1.) * e - .5 * (gamma - 1.) *rho * ( u*u + v*v);
+
+		    //contributing to the right node 
+		    rho = Q[neqs*n_right + 0];
+		    u = Q[neqs*n_right + 1] / Q[neqs*n_right + 0];
+		    v = Q[neqs*n_right + 2] / Q[neqs*n_right + 0];
+		    e = Q[neqs*n_right + 3];
+		    P_right = (gamma - 1.) * e - .5 * (gamma - 1.) *rho * ( u*u + v*v);
+
+		    //for left boundary node
+		    fvl_p[0] = 0.;
+		    fvl_p[1] = nx*(.75*P_left + .25*P_right);
+		    fvl_p[2] = ny*(.75*P_left + .25*P_right);
+		    fvl_p[3] = 0.;
+
+		    for(j=0; j < neqs; j++)
+		    {
+			 R[neqs*n_left+j] += fvl_p[j];
+		    }
+
+		    //for right boundary node
+		    fvl_p[0] = 0.;
+		    fvl_p[1] = nx*(.25*P_left + .75*P_right);
+		    fvl_p[2] = ny*(.25*P_left + .75*P_right);
+		    fvl_p[3] = 0.;
+
+		    for(j=0; j < neqs; j++)
+		    {
+			 R[neqs*n_right+j] += fvl_p[j];
+		    }
+		    
+		    
+		    
+	       }
+
 	       //calculating the center of that edge
 	       xmid = (x[n_right] + x[n_left]) / 2.;
 	       ymid = (y[n_right] + y[n_left]) / 2.;

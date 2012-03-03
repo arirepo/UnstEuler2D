@@ -92,7 +92,7 @@ def main():
         row = i.split()
         x.append(float(row[0]))
         y.append(float(row[1]))
-        z.append(float(row[2]))
+        z.append(float(row[5]))
     infid.close()
     x = np.asarray(x)
     y = np.asarray(y)
@@ -116,7 +116,7 @@ def main():
     plt.figure()
     plt.gca().set_aspect('equal')
     if plt_type == 'Contour':
-        plt.tricontourf(x, y, triangles, z)
+        plt.tricontourf(x, y, triangles, z, 50)
     elif plt_type == 'ColorTri':
         plt.tripcolor(x, y, triangles, z, shading='faceted')
     else:

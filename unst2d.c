@@ -37,33 +37,33 @@ int main(int argc, char *argv[])
 
      for (i = 0; i < nn; i++)
 	  for (j = 0; j < neqs; j++)
-	    Q[i*neqs + j] = (Q_inf[j]+.01);
+	    Q[i*neqs + j] = Q_inf[j];
 
      //tag the boundary nodes     
      int *bn_nodes = NULL;     
      tag_bn_nodes(nn, nb, nbs, bs, &bn_nodes);
-     // plot boundary node numbers
-     double *bn_nodes_plot = (double *)malloc(nn *neqs * sizeof(double));
-     for( i = 0; i < nn; i++)
-       for (j = 0 ; j < neqs; j++)
-       bn_nodes_plot[i*neqs+j] = (double)bn_nodes[i];
-     {
-       PLT_SPEC samp_plt;
-       sprintf(samp_plt.title, "boundary_number_plus_one");
-       sprintf(samp_plt.xlabel, "x");
-       sprintf(samp_plt.ylabel, "y");
-       samp_plt.xmin = -max_abs_array(x, nn);
-       samp_plt.xmax = max_abs_array(x, nn);
-       samp_plt.ymin = -max_abs_array(y, nn);
-       samp_plt.ymax = max_abs_array(y, nn);
-       sprintf(samp_plt.OUTPUT,"display");
-       sprintf(samp_plt.pltype, "Contour");
+     /* // plot boundary node numbers */
+     /* double *bn_nodes_plot = (double *)malloc(nn *neqs * sizeof(double)); */
+     /* for( i = 0; i < nn; i++) */
+     /*   for (j = 0 ; j < neqs; j++) */
+     /*   bn_nodes_plot[i*neqs+j] = (double)bn_nodes[i]; */
+     /* { */
+     /*   PLT_SPEC samp_plt; */
+     /*   sprintf(samp_plt.title, "boundary_number_plus_one"); */
+     /*   sprintf(samp_plt.xlabel, "x"); */
+     /*   sprintf(samp_plt.ylabel, "y"); */
+     /*   samp_plt.xmin = -max_abs_array(x, nn); */
+     /*   samp_plt.xmax = max_abs_array(x, nn); */
+     /*   samp_plt.ymin = -max_abs_array(y, nn); */
+     /*   samp_plt.ymax = max_abs_array(y, nn); */
+     /*   sprintf(samp_plt.OUTPUT,"display"); */
+     /*   sprintf(samp_plt.pltype, "Contour"); */
      
-       write_unst_grd_sol(argv[1], x, y, bn_nodes_plot, neqs, nn, nt, tri_conn, &samp_plt);
-       //print_array("bn_nodes_plot", bn_nodes_plot, nn*neqs);
-       printf("boundary number visualization finished! exit ...\n");
-       exit(0);
-     }
+     /*   write_unst_grd_sol(argv[1], x, y, bn_nodes_plot, neqs, nn, nt, tri_conn, &samp_plt); */
+     /*   //print_array("bn_nodes_plot", bn_nodes_plot, nn*neqs); */
+     /*   printf("boundary number visualization finished! exit ...\n"); */
+     /*   exit(0); */
+     /* } */
 
      // check if normal cansel out
      double sum_nx=0., sum_ny=0.;
@@ -85,10 +85,10 @@ int main(int argc, char *argv[])
 
      int ITR = 0;
      double *int_uplusc_dl = (double *)malloc(nn * sizeof(double) );
-     double CFL = 25.2;
+     double CFL = .9;
 
      // main iteration loop
-     for( ITR = 1; ITR < 1000; ITR++)
+     for( ITR = 1; ITR < 15000; ITR++)
        {
 
 	 //finding the residuals
@@ -103,7 +103,7 @@ int main(int argc, char *argv[])
 	   for( j = 0; j < neqs; j++)
 	     {
 	       //printf("DQ = %e\n", CFL*area[i]/int_uplusc_dl[i]);
-	       Q[i*neqs + j] = Q[i*neqs + j] - CFL*area[i]/int_uplusc_dl[i] * R[i*neqs + j];
+	       Q[i*neqs + j] = Q[i*neqs + j] - CFL/int_uplusc_dl[i] * R[i*neqs + j];
 	     }
 
 
@@ -115,7 +115,7 @@ int main(int argc, char *argv[])
      //Testing Ariplot
      
      PLT_SPEC samp_plt;
-     sprintf(samp_plt.title, "test_contours!");
+     sprintf(samp_plt.title, "contours_e_Minf%1.1f_alpha%1.1f", M_inf, alpha*180./M_PI);
      sprintf(samp_plt.xlabel, "x");
      sprintf(samp_plt.ylabel, "y");
      samp_plt.xmin = -max_abs_array(x, nn);
@@ -123,7 +123,7 @@ int main(int argc, char *argv[])
      samp_plt.ymin = -max_abs_array(y, nn);
      samp_plt.ymax = max_abs_array(y, nn);
      sprintf(samp_plt.OUTPUT,"display");
-     sprintf(samp_plt.pltype, "ColorTri");
+     sprintf(samp_plt.pltype, "Contour");
      
      write_unst_grd_sol(argv[1], x, y, Q, neqs, nn, nt, tri_conn, &samp_plt);
      
