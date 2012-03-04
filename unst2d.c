@@ -4,7 +4,8 @@
 #include "util2d.h"
 #include "grid_reader.h"
 #include "residuals.h"
-#include "marching.h"
+#include "explicit.h"
+#include "implicit.h"
 
 //the driver routine for fluxes
 int main(int argc, char *argv[])
@@ -87,7 +88,12 @@ int main(int argc, char *argv[])
      double CFL = .9;
      int ITR_MAX = 15000;
      int itr_per_msg = 20;
-     efficient_euler_explicit(Q, Q_inf, gamma, CFL, ITR_MAX, itr_per_msg, nn, neqs, x, y, nt, tri_conn, bn_nodes);
+     //efficient_euler_explicit(Q, Q_inf, gamma, CFL, ITR_MAX, itr_per_msg, nn, neqs, x, y, nt, tri_conn, bn_nodes);
+
+     // allocating sparse matrices [A] and [b] based on the input grid
+     alloc_A_b( nn, neqs, nt, tri_conn);
+     //visualize node numbers in gnuplot 
+     xy_tri_gnu_plot("sample_node_number.dat", x, y, tri_conn, nt);
 
      //Testing Ariplot
      
@@ -102,7 +108,7 @@ int main(int argc, char *argv[])
      sprintf(samp_plt.OUTPUT,"display");
      sprintf(samp_plt.pltype, "Contour");
      
-     write_unst_grd_sol(argv[1], x, y, Q, neqs, nn, nt, tri_conn, &samp_plt);
+     //write_unst_grd_sol(argv[1], x, y, Q, neqs, nn, nt, tri_conn, &samp_plt);
 
      //clean - ups 
      free(x);

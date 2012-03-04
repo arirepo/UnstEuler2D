@@ -20,6 +20,8 @@ int read_mesh_file(char *fname, double **x, double **y, int *nn, int *nt, int **
 
 int write_unst_grd_sol(char *fname, double *x, double *y, double *Q, int neqs, int nn, int nt, int **tri, PLT_SPEC *gnplt);
 
+int xy_tri_gnu_plot(char *filename, double *x, double *y, int **tri_conn, int nt);
+
 
 
 #endif

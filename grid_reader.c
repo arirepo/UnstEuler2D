@@ -170,3 +170,36 @@ int write_unst_grd_sol(char *fname, double *x, double *y, double *Q, int neqs, i
      return 0;
 }
 
+// export the triangles together with their node labels to gnu plot
+// use command : "GNUPLOT$> plot 'gnu_it.dat' w l, 'gnu_it.dat' using 1:2:4 with labels" to see the results in gnuplot. 
+int xy_tri_gnu_plot(char *filename, double *x, double *y, int **tri_conn, int nt)
+{
+  int t;
+  FILE *fp = NULL;
+  int n0, n1, n2;
+
+  // output Gnuplot file
+  printf("\nFilename = <%s>\n",filename);
+  // Open file for write
+  if ((fp = fopen(filename,"w")) == NULL)
+  {
+    printf("\nError opening file <%s>.",filename);
+    exit(0);
+  }
+  for (t=0; t < nt; t++)
+  {
+    n0 = tri_conn[t][0];
+    n1 = tri_conn[t][1];
+    n2 = tri_conn[t][2];
+    fprintf(fp,"%19.10e %19.10e 0.0 %d\n",  x[n0],y[n0],n0);
+    fprintf(fp,"%19.10e %19.10e 0.0 %d\n",  x[n1],y[n1],n1);
+    fprintf(fp,"%19.10e %19.10e 0.0 %d\n",  x[n2],y[n2],n2);
+    fprintf(fp,"%19.10e %19.10e 0.0 %d\n\n",x[n0],y[n0],n0);
+  }
+
+  fclose(fp);
+
+  //completed successfully!
+  return 0;
+
+}
