@@ -87,16 +87,20 @@ int main(int argc, char *argv[])
      //starting to march with matrix independent implementation of euler explicit scheme
      double CFL = .9;
      int ITR_MAX = 15000;
-     int itr_per_msg = 20;
+     int itr_per_msg = 1;
      //efficient_euler_explicit(Q, Q_inf, gamma, CFL, ITR_MAX, itr_per_msg, nn, neqs, x, y, nt, tri_conn, bn_nodes);
 
      // allocating sparse matrices [A] and [b] based on the input grid
-     alloc_A_b( nn, neqs, nt, tri_conn);
+     int nnz = 0;
+     int *ia = NULL, *ja = NULL, *iau = NULL;
+     double *A = NULL, *rhs = NULL;
+     alloc_A_b( nn, neqs, nt, tri_conn, &nnz, &ia, &ja,  &iau, &A, &rhs);
      //visualize node numbers in gnuplot 
      xy_tri_gnu_plot("sample_node_number.dat", x, y, tri_conn, nt);
 
-     //Testing Ariplot
-     
+     Axb_euler_explicit(Q, Q_inf, gamma, CFL, ITR_MAX, itr_per_msg, x, y, bn_nodes, nn, neqs, nt, tri_conn, nnz, ia, ja, iau, A);
+
+     //Testing Ariplot     
      PLT_SPEC samp_plt;
      sprintf(samp_plt.title, "contours_e_Minf%1.1f_alpha%1.1f", M_inf, alpha*180./M_PI);
      sprintf(samp_plt.xlabel, "x");
@@ -108,7 +112,7 @@ int main(int argc, char *argv[])
      sprintf(samp_plt.OUTPUT,"display");
      sprintf(samp_plt.pltype, "Contour");
      
-     //write_unst_grd_sol(argv[1], x, y, Q, neqs, nn, nt, tri_conn, &samp_plt);
+     write_unst_grd_sol(argv[1], x, y, Q, neqs, nn, nt, tri_conn, &samp_plt);
 
      //clean - ups 
      free(x);

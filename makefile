@@ -2,7 +2,7 @@
 # --- macros
 CC=g++
 CFLAGS=  -O3 -Wall
-OBJECTS= unst2d.o flux.o util2d.o grid_reader.o residuals.o explicit.o maps.o implicit.o
+OBJECTS= unst2d.o flux.o util2d.o grid_reader.o residuals.o explicit.o maps.o implicit.o lu_serial.o solve_lu_serial.o gauss_seidel_valid.o
 LIBS = -lm
 
 # --- targets
@@ -25,6 +25,12 @@ maps.o : maps.cpp
 	$(CC) $(CFLAGS) -c maps.cpp
 implicit.o : implicit.cpp
 	$(CC) $(CFLAGS) -c implicit.cpp
+lu_serial.o : lu_serial.c
+	$(CC) $(CFLAGS) -c lu_serial.c
+solve_lu_serial.o : solve_lu_serial.c
+	$(CC) $(CFLAGS) -c solve_lu_serial.c
+gauss_seidel_valid.o : gauss_seidel_valid.c
+	$(CC) $(CFLAGS) -c gauss_seidel_valid.c
 
 # --- remove object and executable files
 clean:
