@@ -86,7 +86,7 @@ int main(int argc, char *argv[])
 
      //starting to march with matrix independent implementation of euler explicit scheme
      double CFL = .9;
-     int ITR_MAX = 15000;
+     int ITR_MAX = 25000;
      int itr_per_msg = 1;
      //efficient_euler_explicit(Q, Q_inf, gamma, CFL, ITR_MAX, itr_per_msg, nn, neqs, x, y, nt, tri_conn, bn_nodes);
 
@@ -98,7 +98,7 @@ int main(int argc, char *argv[])
      //visualize node numbers in gnuplot 
      xy_tri_gnu_plot("sample_node_number.dat", x, y, tri_conn, nt);
 
-     Axb_euler_explicit(Q, Q_inf, gamma, CFL, ITR_MAX, itr_per_msg, x, y, bn_nodes, nn, neqs, nt, tri_conn, nnz, ia, ja, iau, A);
+     Axb_euler_explicit(Q, Q_inf, gamma, CFL, ITR_MAX, itr_per_msg, x, y, bn_nodes, nn, neqs, nt, tri_conn, nnz, ia, ja, iau, A, rhs);
 
      //Testing Ariplot     
      PLT_SPEC samp_plt;

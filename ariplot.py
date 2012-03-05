@@ -116,7 +116,7 @@ def main():
     plt.figure()
     plt.gca().set_aspect('equal')
     if plt_type == 'Contour':
-        plt.tricontourf(x, y, triangles, z, 50)
+        plt.tricontourf(x, y, triangles, z, 95)
     elif plt_type == 'ColorTri':
         plt.tripcolor(x, y, triangles, z, shading='faceted')
     else:
