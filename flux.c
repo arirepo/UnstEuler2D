@@ -209,3 +209,65 @@ int calc_van_leer(double *Q, double *fvl_p, double *fvl_m, double **d_fvl_p, dou
      //completed successfully!
      return 0;
 }
+
+//computes wall flux and Jacobians 
+int calc_wall_flux(double *Q, double *fw, double **d_fw, int neqs, double gamma, double *n_hat)
+{
+     int i, j;
+     double length = 0.;
+     double nx, ny;
+     double rho, u, v, u_bar, e, P, c;
+     double *d_rho_dQi = (double *)calloc(neqs , sizeof(double));
+     double *d_u_dQi = (double *)calloc(neqs , sizeof(double));
+     double *d_v_dQi = (double *)calloc(neqs , sizeof(double));
+     double *d_e_dQi = (double *)calloc(neqs , sizeof(double));
+     double *d_P_dQi = (double *)calloc(neqs , sizeof(double));
+ 
+     //step 1: calculating primitive variables
+     length = sqrt(n_hat[0] * n_hat[0]+ n_hat[1] * n_hat[1]);
+     nx = n_hat[0]/length;
+     ny = n_hat[1]/length;
+     rho = Q[0];
+     u = Q[1] / Q[0];
+     v = Q[2] / Q[0];
+     e = Q[3];
+     u_bar = u * nx + v * ny;
+     P = (gamma - 1.) * e - .5 * (gamma - 1.) *rho * ( u*u + v*v);
+     c = sqrt(gamma * P/ rho);
+
+     //calculate wall flux here
+     fw[0] = 0.;
+     fw[1] = length * (nx * P);
+     fw[2] = length * (ny * P);
+     fw[3] = 0.;
+
+     //calculating derivatives of primitive variables
+     d_rho_dQi[0] = 1.;   d_rho_dQi[1] = 0.;   d_rho_dQi[2] = 0.;   d_rho_dQi[3] = 0.;
+     d_u_dQi[0] = -Q[1]/(Q[0]*Q[0]); d_u_dQi[1] = 1./Q[0]; d_u_dQi[2] = 0.; d_u_dQi[3] = 0.;
+     d_v_dQi[0] = -Q[2]/(Q[0]*Q[0]); d_v_dQi[1] = 0.; d_v_dQi[2] = 1./Q[0]; d_v_dQi[3] = 0.;
+     d_e_dQi[0] = 0.; d_e_dQi[1] = 0.; d_e_dQi[2] = 0.; d_e_dQi[3] = 1.;
+
+     //calculating derivatives of P
+     for( i = 0; i < neqs; i++)
+       d_P_dQi[i] = (gamma-1.) * (d_e_dQi[i] - .5 * d_rho_dQi[i] *(u*u + v*v) - rho * (u * d_u_dQi[i] + v * d_v_dQi[i]));
+
+     // filling d_fw
+     for( j = 0; j < neqs; j++)
+       {
+	 d_fw[0][j] = 0.; 
+	 d_fw[1][j] = length * nx * d_P_dQi[j]; 
+	 d_fw[2][j] = length * ny * d_P_dQi[j];
+	 d_fw[3][j] = 0.; 
+       }
+ 
+ 
+     /* clean - up*/  
+     free(d_rho_dQi);
+     free(d_u_dQi);
+     free(d_v_dQi);
+     free(d_e_dQi);
+     free(d_P_dQi);
+
+     //completed successfully!
+     return 0;
+}

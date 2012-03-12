@@ -85,8 +85,8 @@ int main(int argc, char *argv[])
      printf("\ntotal area is = %17.17e and sum of area array is %17.17e\n" , total_area, sum_indv_areas);
 
      //starting to march with matrix independent implementation of euler explicit scheme
-     double CFL = .9;
-     int ITR_MAX = 25000;
+     double CFL = 6.;
+     int ITR_MAX = 5000;
      int itr_per_msg = 1;
      //efficient_euler_explicit(Q, Q_inf, gamma, CFL, ITR_MAX, itr_per_msg, nn, neqs, x, y, nt, tri_conn, bn_nodes);
 
@@ -98,7 +98,8 @@ int main(int argc, char *argv[])
      //visualize node numbers in gnuplot 
      xy_tri_gnu_plot("sample_node_number.dat", x, y, tri_conn, nt);
 
-     Axb_euler_explicit(Q, Q_inf, gamma, CFL, ITR_MAX, itr_per_msg, x, y, bn_nodes, nn, neqs, nt, tri_conn, nnz, ia, ja, iau, A, rhs);
+     //     Axb_euler_explicit(Q, Q_inf, gamma, CFL, ITR_MAX, itr_per_msg, x, y, bn_nodes, nn, neqs, nt, tri_conn, nnz, ia, ja, iau, A, rhs);
+     Axb_euler_implicit(Q, Q_inf, gamma, CFL, ITR_MAX, itr_per_msg, x, y, bn_nodes, nn, neqs, nt, tri_conn, nnz, ia, ja, iau, A, rhs);
 
      //Testing Ariplot     
      PLT_SPEC samp_plt;
@@ -111,7 +112,19 @@ int main(int argc, char *argv[])
      samp_plt.ymax = max_abs_array(y, nn);
      sprintf(samp_plt.OUTPUT,"display");
      sprintf(samp_plt.pltype, "Contour");
-     
+
+     //replacing Q[0] with Mach
+     double rho, u, v, e, P, c;
+     for ( i = 0; i < nn; i++)
+       {
+	 rho = Q[i*neqs];
+	 u = Q[i*neqs+1] / Q[i*neqs];
+	 v = Q[i*neqs+2] / Q[i*neqs];
+	 e = Q[i*neqs+3];
+	 P = (gamma - 1.) * e - .5 * (gamma - 1.) *rho * ( u*u + v*v);
+	 c = sqrt(gamma * P/ rho);
+	 Q[i*neqs] = sqrt(u*u+v*v)/c;
+       }
      write_unst_grd_sol(argv[1], x, y, Q, neqs, nn, nt, tri_conn, &samp_plt);
 
      //clean - ups 
