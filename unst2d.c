@@ -6,6 +6,7 @@
 #include "residuals.h"
 #include "explicit.h"
 #include "implicit.h"
+#include "integral_op.h"
 
 //the driver routine for fluxes
 int main(int argc, char *argv[])
@@ -99,8 +100,9 @@ int main(int argc, char *argv[])
      xy_tri_gnu_plot("sample_node_number.dat", x, y, tri_conn, nt);
 
      //     Axb_euler_explicit(Q, Q_inf, gamma, CFL, ITR_MAX, itr_per_msg, x, y, bn_nodes, nn, neqs, nt, tri_conn, nnz, ia, ja, iau, A, rhs);
-     Axb_euler_implicit(Q, Q_inf, gamma, CFL, ITR_MAX, itr_per_msg, x, y, bn_nodes, nn, neqs, nt, tri_conn, nnz, ia, ja, iau, A, rhs);
+     //Axb_euler_implicit(Q, Q_inf, gamma, CFL, ITR_MAX, itr_per_msg, x, y, bn_nodes, nn, neqs, nt, tri_conn, nnz, ia, ja, iau, A, rhs);
 
+     test_S();
      //Testing Ariplot     
      PLT_SPEC samp_plt;
      sprintf(samp_plt.title, "contours_e_Minf%1.1f_alpha%1.1f", M_inf, alpha*180./M_PI);
@@ -125,7 +127,7 @@ int main(int argc, char *argv[])
 	 c = sqrt(gamma * P/ rho);
 	 Q[i*neqs] = sqrt(u*u+v*v)/c;
        }
-     write_unst_grd_sol(argv[1], x, y, Q, neqs, nn, nt, tri_conn, &samp_plt);
+     //write_unst_grd_sol(argv[1], x, y, Q, neqs, nn, nt, tri_conn, &samp_plt);
 
      //clean - ups 
      free(x);

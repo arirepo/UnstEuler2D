@@ -1,3 +1,4 @@
+
 #include <stdio.h>
 #include "util2d.h"
 #include <math.h>
@@ -138,5 +139,32 @@ double max_abs_R(double *R, int k, int neqs, int nn)
 	       max = fabs(R[neqs*i+k]);
 
      return max;
+     //done!
+}
+
+// finds the maximum of an array of integers.
+int max_array_int(int *inmat, int n1)
+{
+     int i;
+     int max = inmat[0];
+     for( i = 1; i < n1; i++)
+	  if(inmat[i] > max)
+	       max = inmat[i];
+
+     return max;
+     //done!
+}
+
+void print_1d_matrix(const char *name, double *inmat, int n1, int n2)
+{
+     int i,j;
+     printf("\n contents of %s : \n", name);
+     for( i = 0; i < n1; i++)
+     {
+	  for( j = 0; j < n2; j++)
+	       printf("\t%f,", inmat[i*n2+j]);
+	  printf("\n"); 
+
+     }
      //done!
 }
