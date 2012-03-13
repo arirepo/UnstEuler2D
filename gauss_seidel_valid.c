@@ -113,7 +113,7 @@ int read_A_b_from_file(const char *infile, int *nnodes, int *nnz, int **ia, int 
 //ver 1.00, copyright 2012 A. Ghasemi, ghasemi.arash@gmail.com 
 //license : BSD - see file attached -
 
-int gauss_seidel_solve_pivoting(int nnodes, int nnz, int *ia, int *ja,  int *iau, double *A, double *rhs, int neqs, double *x_star, double *xn1, double *xn)
+int gauss_seidel_solve_pivoting(int nnodes, int nnz, int *ia, int *ja,  int *iau, double *A, double *rhs, int neqs, double *x_star, double *xn1, double *xn, short init)
 {
      //locals
      int i,j;
@@ -129,12 +129,13 @@ int gauss_seidel_solve_pivoting(int nnodes, int nnz, int *ia, int *ja,  int *iau
 	  lu_serial((A + iau[i]*neqs*neqs), (P + i*neqs*neqs), neqs);
 
      //initializing solution [xn] with [rhs]/A(diag)
-     for ( i = 0; i < nnodes; i++)
-	  for( j = 0; j < neqs; j++)
-	  {
-	       jstart = iau[i];
-	       xn[i*neqs + j] = rhs[i*neqs + j] / A[jstart*neqs*neqs + j*neqs + j];
-	  }
+     if (init)
+       for ( i = 0; i < nnodes; i++)
+	 for( j = 0; j < neqs; j++)
+	   {
+	     jstart = iau[i];
+	     xn[i*neqs + j] = rhs[i*neqs + j] / A[jstart*neqs*neqs + j*neqs + j];
+	   }
      
      do{
 	  //resetting [x_star]

@@ -93,11 +93,12 @@ int alloc_A_b( int nn, int neqs, int nt, int **tri_conn, int *nnz, int **ia, int
 int Axb_euler_explicit(double *Q, double *Q_inf, double gamma, double CFL, int ITR_MAX, int itr_per_msg, double *x, double *y, int *bn_nodes, int nn, int neqs, int nt, int **tri_conn, int nnz, int *ia, int *ja,  int *iau, double *A, double *rhs)
 {
 
-  double *xn = (double *)malloc( neqs * nn * sizeof(double) );
-  double *xn1 = (double *)malloc( neqs * nn * sizeof(double) );
-  double *x_star = (double *)malloc( neqs * nn * sizeof(double) );
+  double *xn = (double *)calloc( neqs * nn , sizeof(double) );
+  double *xn1 = (double *)calloc( neqs * nn , sizeof(double) );
+  double *x_star = (double *)calloc( neqs * nn , sizeof(double) );
   //locals
   int i,j,k;
+  short init;
   double *R = (double *)calloc((nn*neqs) , sizeof(double));
   int ITR = 0;
   double *int_uplusc_dl = (double *)calloc(nn , sizeof(double) );
@@ -123,7 +124,8 @@ int Axb_euler_explicit(double *Q, double *Q_inf, double gamma, double CFL, int I
 	    A[k*neqs*neqs + j*neqs+j] = int_uplusc_dl[i]/CFL;
 	}
 
-      gauss_seidel_solve_pivoting(nn, nnz, ia, ja,  iau, A, rhs, neqs, x_star, xn1, xn);
+      init =  (ITR == 1)?1:0;
+      gauss_seidel_solve_pivoting(nn, nnz, ia, ja,  iau, A, rhs, neqs, x_star, xn1, xn, init);
 
       //updating Q
       for( i = 0; i < nn; i++)
@@ -193,14 +195,24 @@ inline int accumulate_to_ij(double *A, double **Df, int i, int j, int neqs, int 
 {
 
   int l, m, loc;
+  short found_flag = 0;
   int i_start = ia[i];
   int i_end = ia[i+1]-1;
   loc = i_start; //initial location
   for( l = i_start; l <= i_end; l++) //adding appropriate offset
     if(ja[l] == j)
-      break;
+      { 
+	found_flag = 1;
+	break;
+      }
     else
-      loc++;  
+      loc++;
+
+  if(!found_flag)
+    {
+      printf("\nfatal: couldn't find the ij offdiagonal entry in the matrix\n");
+      exit(0);
+    }  
   // now we have the location of the block which we should accumulate to.
   for( l = 0; l < neqs; l++)
     for( m = 0; m < neqs; m++)
@@ -324,8 +336,11 @@ int fill_A_b(double *Q, double *Q_inf, double gamma, double *x, double *y, int *
 			 rhs[neqs*n_right+j] -= fw[j];
 		    }
 
+		    //accumulate Jacobian to the diagonal of matrix A for right nodes
+		    accumulate_to_diag(A,dfw,n_right,neqs, iau);
+
 		    //accumulate Jacobian to the (n_left, n_right) of matrix A 
-		    accumulate_to_ij(A, dfw, n_left, n_right, neqs, ia, ja);
+		    //accumulate_to_ij(A, dfw, n_left, n_right, neqs, ia, ja);
 		    
 	       }
 
@@ -354,6 +369,21 @@ int fill_A_b(double *Q, double *Q_inf, double gamma, double *x, double *y, int *
 
 	       //accumulating off-diagonal
 	       accumulate_to_ij(A, d_fvl_m, n_left, n_right, neqs, ia, ja);
+
+	       //change the sign of jacobians
+	       for(j=0; j < neqs; j++)
+		 for(kk=0; kk < neqs; kk++)
+		   {
+		     d_fvl_m[j][kk] = -d_fvl_m[j][kk]; 
+		     d_fvl_p[j][kk] = -d_fvl_p[j][kk]; 
+
+		   }
+	       //accumulating diagonal
+	       accumulate_to_diag(A, d_fvl_m, n_right, neqs, iau);
+
+	       //accumulating off-diagonal
+	       accumulate_to_ij(A, d_fvl_p, n_right, n_left, neqs, ia, ja);
+
 	       
 
 	  }
@@ -376,21 +406,23 @@ int fill_A_b(double *Q, double *Q_inf, double gamma, double *x, double *y, int *
 }
 
 //implemets euler implicit scheme in Ax = b = rhs form
-int Axb_euler_implicit(double *Q, double *Q_inf, double gamma, double CFL, int ITR_MAX, int itr_per_msg, double *x, double *y, int *bn_nodes, int nn, int neqs, int nt, int **tri_conn, int nnz, int *ia, int *ja,  int *iau, double *A, double *rhs)
+int Axb_euler_implicit(double *Q, double *Q_inf, double gamma, double CFL_min, double CFL_max, int ITR_MAX, int itr_per_msg, double *x, double *y, int *bn_nodes, int nn, int neqs, int nt, int **tri_conn, int nnz, int *ia, int *ja,  int *iau, double *A, double *rhs)
 {
   int i_start, i_end;
-  double *xn = (double *)malloc( neqs * nn * sizeof(double) );
-  double *xn1 = (double *)malloc( neqs * nn * sizeof(double) );
-  double *x_star = (double *)malloc( neqs * nn * sizeof(double) );
+  double CFL = 0.;
+  double *xn = (double *)calloc( neqs * nn , sizeof(double) );
+  double *xn1 = (double *)calloc( neqs * nn , sizeof(double) );
+  double *x_star = (double *)calloc( neqs * nn , sizeof(double) );
   //locals
   int i,j,k;
   int ITR = 0;
   double *int_uplusc_dl = (double *)calloc(nn , sizeof(double) );
+  short init = 0;
 
   // main iteration loop
   for( ITR = 1; ITR <= ITR_MAX; ITR++)
     {
-
+      CFL = CFL_min + ((double)ITR - 1.)/ ((double)ITR_MAX - 1.) * (CFL_max - CFL_min);
       //fill A , rhs
       fill_A_b(Q, Q_inf, gamma, x, y, bn_nodes, nn, neqs, nt, tri_conn, nnz, ia, ja, iau, A, rhs);
 
@@ -418,8 +450,8 @@ int Axb_euler_implicit(double *Q, double *Q_inf, double gamma, double CFL, int I
 	    freez((rhs+i*neqs) , neqs, 1);		    
 	  }
 
-
-      gauss_seidel_solve_pivoting(nn, nnz, ia, ja,  iau, A, rhs, neqs, x_star, xn1, xn);
+      init =  (ITR == 1)?1:0;
+      gauss_seidel_solve_pivoting(nn, nnz, ia, ja,  iau, A, rhs, neqs, x_star, xn1, xn, init);
 
       //updating Q
       for( i = 0; i < nn; i++)
@@ -428,7 +460,7 @@ int Axb_euler_implicit(double *Q, double *Q_inf, double gamma, double CFL, int I
 
 
       if(!(ITR % itr_per_msg)) // show status each itr_per_msg time
-	printf("ITR = %d, max_abs(R[1,2,3,4]) = %17.17e\n", ITR, max_abs_array(xn, (neqs*nn)));
+	printf("ITR = %d, CFL = %2.2f, init = %d, max_abs(R[1,2,3,4]) = %17.17e\n", ITR, CFL, init, max_abs_array(xn, (neqs*nn)));
 
 
     }

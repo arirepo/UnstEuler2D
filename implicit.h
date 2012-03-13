@@ -21,7 +21,7 @@ int fill_A_b(double *Q, double *Q_inf, double gamma, double *x, double *y, int *
 
 
 //implemets euler implicit scheme in Ax = b = rhs form
-int Axb_euler_implicit(double *Q, double *Q_inf, double gamma, double CFL, int ITR_MAX, int itr_per_msg, double *x, double *y, int *bn_nodes, int nn, int neqs, int nt, int **tri_conn, int nnz, int *ia, int *ja,  int *iau, double *A, double *rhs);
+int Axb_euler_implicit(double *Q, double *Q_inf, double gamma, double CFL_min, double CFL_max, int ITR_MAX, int itr_per_msg, double *x, double *y, int *bn_nodes, int nn, int neqs, int nt, int **tri_conn, int nnz, int *ia, int *ja,  int *iau, double *A, double *rhs);
 
 inline void identity(double *S, int neqs);
 inline void freez(double *S, int n1, int n2 );

@@ -51,6 +51,7 @@ int main(int argc, char *argv[])
      /*   bn_nodes_plot[i*neqs+j] = (double)bn_nodes[i]; */
      /* { */
      /*   PLT_SPEC samp_plt; */
+
      /*   sprintf(samp_plt.title, "boundary_number_plus_one"); */
      /*   sprintf(samp_plt.xlabel, "x"); */
      /*   sprintf(samp_plt.ylabel, "y"); */
@@ -86,8 +87,8 @@ int main(int argc, char *argv[])
      printf("\ntotal area is = %17.17e and sum of area array is %17.17e\n" , total_area, sum_indv_areas);
 
      //starting to march with matrix independent implementation of euler explicit scheme
-     double CFL = 6.;
-     int ITR_MAX = 5000;
+     //double CFL = .9;
+     int ITR_MAX = 100;
      int itr_per_msg = 1;
      //efficient_euler_explicit(Q, Q_inf, gamma, CFL, ITR_MAX, itr_per_msg, nn, neqs, x, y, nt, tri_conn, bn_nodes);
 
@@ -100,9 +101,10 @@ int main(int argc, char *argv[])
      xy_tri_gnu_plot("sample_node_number.dat", x, y, tri_conn, nt);
 
      //     Axb_euler_explicit(Q, Q_inf, gamma, CFL, ITR_MAX, itr_per_msg, x, y, bn_nodes, nn, neqs, nt, tri_conn, nnz, ia, ja, iau, A, rhs);
-     //Axb_euler_implicit(Q, Q_inf, gamma, CFL, ITR_MAX, itr_per_msg, x, y, bn_nodes, nn, neqs, nt, tri_conn, nnz, ia, ja, iau, A, rhs);
+     double CFL_min = 1., CFL_max = 650.;
+     Axb_euler_implicit(Q, Q_inf, gamma, CFL_min, CFL_max, ITR_MAX, itr_per_msg, x, y, bn_nodes, nn, neqs, nt, tri_conn, nnz, ia, ja, iau, A, rhs);
 
-     test_S();
+     //test_S();
      //Testing Ariplot     
      PLT_SPEC samp_plt;
      sprintf(samp_plt.title, "contours_e_Minf%1.1f_alpha%1.1f", M_inf, alpha*180./M_PI);
@@ -127,7 +129,7 @@ int main(int argc, char *argv[])
 	 c = sqrt(gamma * P/ rho);
 	 Q[i*neqs] = sqrt(u*u+v*v)/c;
        }
-     //write_unst_grd_sol(argv[1], x, y, Q, neqs, nn, nt, tri_conn, &samp_plt);
+     write_unst_grd_sol(argv[1], x, y, Q, neqs, nn, nt, tri_conn, &samp_plt);
 
      //clean - ups 
      free(x);
