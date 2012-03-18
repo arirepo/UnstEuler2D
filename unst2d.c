@@ -88,7 +88,7 @@ int main(int argc, char *argv[])
 
      //starting to march with matrix independent implementation of euler explicit scheme
      //double CFL = .9;
-     int ITR_MAX = 100;
+     int ITR_MAX = 150;
      int itr_per_msg = 1;
      //efficient_euler_explicit(Q, Q_inf, gamma, CFL, ITR_MAX, itr_per_msg, nn, neqs, x, y, nt, tri_conn, bn_nodes);
 
@@ -101,7 +101,7 @@ int main(int argc, char *argv[])
      xy_tri_gnu_plot("sample_node_number.dat", x, y, tri_conn, nt);
 
      //     Axb_euler_explicit(Q, Q_inf, gamma, CFL, ITR_MAX, itr_per_msg, x, y, bn_nodes, nn, neqs, nt, tri_conn, nnz, ia, ja, iau, A, rhs);
-     double CFL_min = 1., CFL_max = 650.;
+     double CFL_min = 1., CFL_max = 1850.;
      Axb_euler_implicit(Q, Q_inf, gamma, CFL_min, CFL_max, ITR_MAX, itr_per_msg, x, y, bn_nodes, nn, neqs, nt, tri_conn, nnz, ia, ja, iau, A, rhs);
 
      //test_S();
@@ -127,7 +127,7 @@ int main(int argc, char *argv[])
 	 e = Q[i*neqs+3];
 	 P = (gamma - 1.) * e - .5 * (gamma - 1.) *rho * ( u*u + v*v);
 	 c = sqrt(gamma * P/ rho);
-	 Q[i*neqs] = sqrt(u*u+v*v)/c;
+	 //Q[i*neqs] = sqrt(u*u+v*v)/c;
        }
      write_unst_grd_sol(argv[1], x, y, Q, neqs, nn, nt, tri_conn, &samp_plt);
 
