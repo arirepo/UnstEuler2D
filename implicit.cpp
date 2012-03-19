@@ -7,6 +7,7 @@
 #include "util2d.h"
 #include "gauss_seidel_valid.h"
 #include "flux.h"
+#include <math.h>
 
 using namespace std;
 
@@ -418,10 +419,21 @@ int Axb_euler_implicit(double *Q, double *Q_inf, double gamma, double CFL_min, d
   int ITR = 0;
   double *int_uplusc_dl = (double *)calloc(nn , sizeof(double) );
   short init = 0;
+  double rms = 0.;
+  // short restart_flag = 1;
 
   // main iteration loop
   for( ITR = 1; ITR <= ITR_MAX; ITR++)
     {
+      // if((ITR == 6) && restart_flag)
+      // 	{
+      // 	  //CFL_min = 1.;
+      // 	  ITR = 1;
+      // 	  CFL_max = 90000.;
+      // 	  ITR_MAX = 200;
+      // 	  restart_flag = 0;
+      // 	}
+
       CFL = CFL_min + ((double)ITR - 1.)/ ((double)ITR_MAX - 1.) * (CFL_max - CFL_min);
       //fill A , rhs
       fill_A_b(Q, Q_inf, gamma, x, y, bn_nodes, nn, neqs, nt, tri_conn, nnz, ia, ja, iau, A, rhs);
@@ -458,9 +470,18 @@ int Axb_euler_implicit(double *Q, double *Q_inf, double gamma, double CFL_min, d
 	for( j = 0; j < neqs; j++)
 	  Q[i*neqs + j] = Q[i*neqs + j] + xn[i*neqs + j];
 
+      // finding RMS
+      rms = 0.;
+      for( i = 0; i < nn ; i++)
+	for( j = 0; j < neqs ; j++)
+	  rms += (xn[i*neqs + j]*xn[i*neqs + j]);
+
+      rms = sqrt(rms / ((double)nn*(double)neqs));
 
       if(!(ITR % itr_per_msg)) // show status each itr_per_msg time
-	printf("ITR = %d, CFL = %2.2f, init = %d, max_abs(R[1,2,3,4]) = %17.17e\n", ITR, CFL, init, max_abs_array(xn, (neqs*nn)));
+	printf("%d %19.19e;\n", ITR, rms/*max_abs_array(xn, (neqs*nn))*/);
+
+	//	printf("ITR = %d, CFL = %2.2f, init = %d, rms = %17.17e\n", ITR, CFL, init, rms/*max_abs_array(xn, (neqs*nn))*/);
 
 
     }

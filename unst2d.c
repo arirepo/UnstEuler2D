@@ -88,7 +88,7 @@ int main(int argc, char *argv[])
 
      //starting to march with matrix independent implementation of euler explicit scheme
      //double CFL = .9;
-     int ITR_MAX = 150;
+     int ITR_MAX = 100;
      int itr_per_msg = 1;
      //efficient_euler_explicit(Q, Q_inf, gamma, CFL, ITR_MAX, itr_per_msg, nn, neqs, x, y, nt, tri_conn, bn_nodes);
 
