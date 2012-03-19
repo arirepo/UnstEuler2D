@@ -7,6 +7,7 @@
 #include "explicit.h"
 #include "implicit.h"
 #include "integral_op.h"
+#include "gradient.h"
 
 //the driver routine for fluxes
 int main(int argc, char *argv[])
@@ -102,7 +103,9 @@ int main(int argc, char *argv[])
 
      //     Axb_euler_explicit(Q, Q_inf, gamma, CFL, ITR_MAX, itr_per_msg, x, y, bn_nodes, nn, neqs, nt, tri_conn, nnz, ia, ja, iau, A, rhs);
      double CFL_min = 1., CFL_max = 1850.;
-     Axb_euler_implicit(Q, Q_inf, gamma, CFL_min, CFL_max, ITR_MAX, itr_per_msg, x, y, bn_nodes, nn, neqs, nt, tri_conn, nnz, ia, ja, iau, A, rhs);
+     //     Axb_euler_implicit(Q, Q_inf, gamma, CFL_min, CFL_max, ITR_MAX, itr_per_msg, x, y, bn_nodes, nn, neqs, nt, tri_conn, nnz, ia, ja, iau, A, rhs);
+
+     test_grad_2nd_order(Q, neqs, area, x, y, bn_nodes, nn, nt, tri_conn);
 
      //test_S();
      //Testing Ariplot     
@@ -129,7 +132,7 @@ int main(int argc, char *argv[])
 	 c = sqrt(gamma * P/ rho);
 	 //Q[i*neqs] = sqrt(u*u+v*v)/c;
        }
-     write_unst_grd_sol(argv[1], x, y, Q, neqs, nn, nt, tri_conn, &samp_plt);
+     //write_unst_grd_sol(argv[1], x, y, Q, neqs, nn, nt, tri_conn, &samp_plt);
 
      //clean - ups 
      free(x);
