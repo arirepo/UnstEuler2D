@@ -102,10 +102,10 @@ int main(int argc, char *argv[])
      xy_tri_gnu_plot("sample_node_number.dat", x, y, tri_conn, nt);
 
      //     Axb_euler_explicit(Q, Q_inf, gamma, CFL, ITR_MAX, itr_per_msg, x, y, bn_nodes, nn, neqs, nt, tri_conn, nnz, ia, ja, iau, A, rhs);
-     double CFL_min = 1., CFL_max = 1850.;
-     //     Axb_euler_implicit(Q, Q_inf, gamma, CFL_min, CFL_max, ITR_MAX, itr_per_msg, x, y, bn_nodes, nn, neqs, nt, tri_conn, nnz, ia, ja, iau, A, rhs);
+     double CFL_min = 1., CFL_max = 200.;
+     Axb_euler_implicit(Q, Q_inf, gamma, CFL_min, CFL_max, ITR_MAX, itr_per_msg, x, y, bn_nodes, nn, neqs, nt, tri_conn, nnz, ia, ja, iau, A, rhs, area);
 
-     test_grad_2nd_order(Q, neqs, area, x, y, bn_nodes, nn, nt, tri_conn);
+     //test_grad_2nd_order(Q, neqs, area, x, y, bn_nodes, nn, nt, tri_conn);
 
      //test_S();
      //Testing Ariplot     
@@ -132,7 +132,7 @@ int main(int argc, char *argv[])
 	 c = sqrt(gamma * P/ rho);
 	 //Q[i*neqs] = sqrt(u*u+v*v)/c;
        }
-     //write_unst_grd_sol(argv[1], x, y, Q, neqs, nn, nt, tri_conn, &samp_plt);
+     write_unst_grd_sol(argv[1], x, y, Q, neqs, nn, nt, tri_conn, &samp_plt);
 
      //clean - ups 
      free(x);

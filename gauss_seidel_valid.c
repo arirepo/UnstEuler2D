@@ -119,6 +119,7 @@ int gauss_seidel_solve_pivoting(int nnodes, int nnz, int *ia, int *ja,  int *iau
      int i,j;
      int jstart, jend;
      double GS_res = 0.;
+     //int counter = 0;
      
      // allocating permutation matrix
      int *P = (int *)malloc( nnodes * neqs * neqs * sizeof(int) );
@@ -179,7 +180,7 @@ int gauss_seidel_solve_pivoting(int nnodes, int nnz, int *ia, int *ja,  int *iau
 	       for( j = 0; j < neqs; j++)
 		    xn[i*neqs + j]  = xn1[i*neqs + j];
 	  //printf("\n%e\n", GS_res);	  
-     }while( GS_res >= GS_RES_EPS );
+     }while( (GS_res >= GS_RES_EPS) /* && (counter++ < 40) */ );
 
      //clean - up
      free(P);

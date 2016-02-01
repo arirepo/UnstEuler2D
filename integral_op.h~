@@ -1,8 +1,0 @@
-#ifndef _INTEGRAL_OP_H_
-#define _INTEGRAL_OP_H_
-
-int max_array_int(int *inmat, int n1);
-
-int S(int colength,int z, int *NBSCHTYPE, int len_NBSCHTYPE, int *INTSCHTYPE, double **S, double **f1_mod);
-
-#endif

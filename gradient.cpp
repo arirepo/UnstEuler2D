@@ -2,6 +2,7 @@
 #include "gradient.h"
 #include <vector>
 #include "maps.h"
+#include <stdlib.h>
 
 using namespace std;
 

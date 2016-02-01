@@ -1,5 +1,7 @@
 #ifndef _IMPLICIT_H_
 #define _IMPLICIT_H_
+#include <vector>
+
 using namespace std;
 
 
@@ -17,11 +19,10 @@ inline int accumulate_to_ij(double *A, double **Df, int i, int j, int neqs, int 
 
 // first reset A and b
 // fills  martices A and b with Jacobians and residuals respectively
-int fill_A_b(double *Q, double *Q_inf, double gamma, double *x, double *y, int *bn_nodes, int nn, int neqs, int nt, int **tri_conn, int nnz, int *ia, int *ja,  int *iau, double *A, double *rhs);
-
+int fill_A_b(double *Q, double *Q_inf, double gamma, double *x, double *y, int *bn_nodes, int nn, int neqs, int nt, int **tri_conn, int nnz, int *ia, int *ja,  int *iau, double *A, double *rhs, vector<int> *p_to_e, double *grad, double *area);
 
 //implemets euler implicit scheme in Ax = b = rhs form
-int Axb_euler_implicit(double *Q, double *Q_inf, double gamma, double CFL_min, double CFL_max, int ITR_MAX, int itr_per_msg, double *x, double *y, int *bn_nodes, int nn, int neqs, int nt, int **tri_conn, int nnz, int *ia, int *ja,  int *iau, double *A, double *rhs);
+int Axb_euler_implicit(double *Q, double *Q_inf, double gamma, double CFL_min, double CFL_max, int ITR_MAX, int itr_per_msg, double *x, double *y, int *bn_nodes, int nn, int neqs, int nt, int **tri_conn, int nnz, int *ia, int *ja,  int *iau, double *A, double *rhs, double *area);
 
 inline void identity(double *S, int neqs);
 inline void freez(double *S, int n1, int n2 );

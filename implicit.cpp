@@ -8,6 +8,7 @@
 #include "gauss_seidel_valid.h"
 #include "flux.h"
 #include <math.h>
+#include "gradient.h"
 
 using namespace std;
 
@@ -227,7 +228,7 @@ inline int accumulate_to_ij(double *A, double **Df, int i, int j, int neqs, int 
 
 // first reset A and b
 // fills  martices A and b with Jacobians and residuals respectively
-int fill_A_b(double *Q, double *Q_inf, double gamma, double *x, double *y, int *bn_nodes, int nn, int neqs, int nt, int **tri_conn, int nnz, int *ia, int *ja,  int *iau, double *A, double *rhs)
+int fill_A_b(double *Q, double *Q_inf, double gamma, double *x, double *y, int *bn_nodes, int nn, int neqs, int nt, int **tri_conn, int nnz, int *ia, int *ja,  int *iau, double *A, double *rhs, vector<int> *p_to_e, double *grad, double *area)
 {
 
      //local vars
@@ -255,6 +256,12 @@ int fill_A_b(double *Q, double *Q_inf, double gamma, double *x, double *y, int *
 	  d_fvl_m[i] = (double *)calloc( neqs , sizeof(double));
 	  dfw[i] = (double *)calloc( neqs , sizeof(double));
      }
+     double *QL = (double *)calloc( neqs , sizeof(double)); //High-order Q
+     double *QR = (double *)calloc( neqs , sizeof(double)); //High-order Q
+     double rx, ry; //a vector in the direction of the gradient
+
+     // find gradients
+     grad_2nd_order(Q, p_to_e, neqs, area, x, y, bn_nodes, nn, tri_conn, grad);
 
      //resseting the A
      for( i = 0; i < nnz; i++)	  
@@ -348,16 +355,30 @@ int fill_A_b(double *Q, double *Q_inf, double gamma, double *x, double *y, int *
 	       //calculating the center of that edge
 	       xmid = (x[n_right] + x[n_left]) / 2.;
 	       ymid = (y[n_right] + y[n_left]) / 2.;
+	       //calculate rx ry
+	       rx = (.5*(xmid+xc) - x[n_left]);
+	       ry = (.5*(ymid+yc) - y[n_left]);
+	       //reconstructing 
+	       for ( j = 0; j < neqs; j++)
+		 QL[j] = Q[neqs*n_left + j] + grad[neqs*2*n_left+2*j+0]*rx + grad[neqs*2*n_left+2*j+1]*ry;
+
 	       //calculating normals		 
 	       nx = yc - ymid;
 	       ny = -(xc-xmid);
-	       //calculate f+ with Qleft[i] = Q[neqs*n_left+i]
 	       n_hat[0] = nx;
 	       n_hat[1] = ny;		 
-	       f_select[0] = 1; f_select[1] = 0; f_select[2] = 1; f_select[3] = 0;	       
-	       calc_van_leer((Q+neqs*n_left), fvl_p, fvl_m, d_fvl_p, d_fvl_m, neqs, gamma, n_hat, f_select);
-	       f_select[0] = 0; f_select[1] = 1; f_select[2] = 0; f_select[3] = 1;	       
-	       calc_van_leer((Q+neqs*n_right), fvl_p, fvl_m, d_fvl_p, d_fvl_m, neqs, gamma, n_hat, f_select);
+	       f_select[0] = 1; f_select[1] = 0; f_select[2] = 0; f_select[3] = 0;	       
+	       calc_van_leer(QL, fvl_p, fvl_m, d_fvl_p, d_fvl_m, neqs, gamma, n_hat, f_select);
+	       f_select[0] = 0; f_select[1] = 1; f_select[2] = 0; f_select[3] = 0;
+
+	       //calculate rx ry
+	       rx = (.5*(xmid+xc) - x[n_right]);
+	       ry = (.5*(ymid+yc) - y[n_right]);
+	       //reconstructing 
+	       for ( j = 0; j < neqs; j++)
+		 QR[j] = Q[neqs*n_right + j] + grad[neqs*2*n_right+2*j+0]*rx + grad[neqs*2*n_right+2*j+1]*ry;
+	       
+	       calc_van_leer(QR, fvl_p, fvl_m, d_fvl_p, d_fvl_m, neqs, gamma, n_hat, f_select);
 
 	       // accumulating residals to rhs
 	       for(j=0; j < neqs; j++)
@@ -365,6 +386,15 @@ int fill_A_b(double *Q, double *Q_inf, double gamma, double *x, double *y, int *
 		    rhs[neqs*n_left+j] -= (fvl_p[j] + fvl_m[j]);
 		    rhs[neqs*n_right+j] += (fvl_p[j] + fvl_m[j]);
 	       }
+
+	       //calculate f+ with Qleft[i] = Q[neqs*n_left+i] //first-order for Jacobi 
+	       n_hat[0] = nx;
+	       n_hat[1] = ny;		 
+	       f_select[0] = 1; f_select[1] = 0; f_select[2] = 1; f_select[3] = 0;	       
+	       calc_van_leer((Q+neqs*n_left), fvl_p, fvl_m, d_fvl_p, d_fvl_m, neqs, gamma, n_hat, f_select);
+	       f_select[0] = 0; f_select[1] = 1; f_select[2] = 0; f_select[3] = 1;	       
+	       calc_van_leer((Q+neqs*n_right), fvl_p, fvl_m, d_fvl_p, d_fvl_m, neqs, gamma, n_hat, f_select);
+
 	       //accumulating diagonal
 	       accumulate_to_diag(A, d_fvl_p, n_left, neqs, iau);
 
@@ -401,13 +431,15 @@ int fill_A_b(double *Q, double *Q_inf, double gamma, double *x, double *y, int *
      free(Q_edge);
      free(fw);
      free(dfw);
+     free(QL);
+     free(QR);
 
      //completed successfully
      return 0;
 }
 
 //implemets euler implicit scheme in Ax = b = rhs form
-int Axb_euler_implicit(double *Q, double *Q_inf, double gamma, double CFL_min, double CFL_max, int ITR_MAX, int itr_per_msg, double *x, double *y, int *bn_nodes, int nn, int neqs, int nt, int **tri_conn, int nnz, int *ia, int *ja,  int *iau, double *A, double *rhs)
+int Axb_euler_implicit(double *Q, double *Q_inf, double gamma, double CFL_min, double CFL_max, int ITR_MAX, int itr_per_msg, double *x, double *y, int *bn_nodes, int nn, int neqs, int nt, int **tri_conn, int nnz, int *ia, int *ja,  int *iau, double *A, double *rhs, double *area)
 {
   int i_start, i_end;
   double CFL = 0.;
@@ -419,24 +451,29 @@ int Axb_euler_implicit(double *Q, double *Q_inf, double gamma, double CFL_min, d
   int ITR = 0;
   double *int_uplusc_dl = (double *)calloc(nn , sizeof(double) );
   short init = 0;
-  double rms = 0.;
+  double rms = 1.;
   // short restart_flag = 1;
+  //allocating p_to_e map ...
+  vector<int> *p_to_e = (vector<int> *)calloc( nn , sizeof(vector<int>));
+  double *grad = (double *)calloc( nn*neqs*2 , sizeof(double));
+  //make p2e map 
+  create_p_to_e(nt, tri_conn, p_to_e);
 
   // main iteration loop
-  for( ITR = 1; ITR <= ITR_MAX; ITR++)
+  for( ITR = 1; /*(*/(ITR <= 500) /*|| (rms > 8.e-15))*/; ITR++)
     {
-      // if((ITR == 6) && restart_flag)
+      // if((ITR == 15) && restart_flag)
       // 	{
       // 	  //CFL_min = 1.;
       // 	  ITR = 1;
       // 	  CFL_max = 90000.;
-      // 	  ITR_MAX = 200;
+      // 	  ITR_MAX = 50;
       // 	  restart_flag = 0;
       // 	}
 
       CFL = CFL_min + ((double)ITR - 1.)/ ((double)ITR_MAX - 1.) * (CFL_max - CFL_min);
       //fill A , rhs
-      fill_A_b(Q, Q_inf, gamma, x, y, bn_nodes, nn, neqs, nt, tri_conn, nnz, ia, ja, iau, A, rhs);
+      fill_A_b(Q, Q_inf, gamma, x, y, bn_nodes, nn, neqs, nt, tri_conn, nnz, ia, ja, iau, A, rhs, p_to_e, grad, area);
 
       // calculating line integral int( (|u_bar| + c) dl ) 
       calc_int_uplusc_dl( Q, gamma, neqs, nn, x, y, nt, tri_conn, bn_nodes, int_uplusc_dl);
