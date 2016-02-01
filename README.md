@@ -1,2 +1,3 @@
 # UnstEuler2D
-Completely Validated Unstructured Two-Dimensional Euler Solver Written in C
+Completely Validated Unstructured Two-Dimensional Euler Solver
+
